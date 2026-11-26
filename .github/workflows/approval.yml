@@ -1,0 +1,10 @@
+name: Approval
+on:
+  pull_request:
+    paths: ["needs-approval.txt"]
+jobs:
+  approval:
+    runs-on: ubuntu-latest
+    environment: gate-lab-approval
+    steps:
+      - run: echo "approved"

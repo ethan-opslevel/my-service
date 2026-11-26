@@ -34,9 +34,3 @@ jobs:
             fail) echo "FAIL: permanent failure requested by ci-control.txt"; exit 1 ;;
             *) echo "unknown mode $mode"; exit 1 ;;
           esac
-  approval:
-    if: ${{ hashFiles('needs-approval.txt') != '' }}
-    runs-on: ubuntu-latest
-    environment: gate-lab-approval
-    steps:
-      - run: echo "approved"
