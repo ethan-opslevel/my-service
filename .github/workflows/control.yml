@@ -1,0 +1,42 @@
+name: Control
+on:
+  pull_request:
+    paths-ignore: ["docs/**"]
+permissions:
+  actions: write
+  contents: read
+jobs:
+  control:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply ci-control.txt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ATTEMPT: ${{ github.run_attempt }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          mode="$(head -n1 ci-control.txt 2>/dev/null | tr -d '[:space:]')"
+          echo "mode=${mode:-none} attempt=$ATTEMPT"
+          case "$mode" in
+            ""|pass) echo "control ok" ;;
+            token)
+              if [ "$(cat token.txt 2>/dev/null | tr -d '[:space:]')" != "lab-4417" ]; then
+                echo "FAIL: token.txt must exist and contain exactly: lab-4417"
+                exit 1
+              fi
+              echo "token ok" ;;
+            flaky)
+              if [ "$ATTEMPT" = "1" ]; then echo "FAIL: transient network error talking to registry.example.com (flaky)"; exit 1; fi
+              echo "flaky passed on attempt $ATTEMPT" ;;
+            sleep*) secs="${mode#sleep}"; echo "sleeping ${secs:-120}s"; sleep "${secs:-120}"; echo "slept" ;;
+            cancel) gh run cancel "$RUN_ID" -R "$GITHUB_REPOSITORY"; sleep 60 ;;
+            fail) echo "FAIL: permanent failure requested by ci-control.txt"; exit 1 ;;
+            *) echo "unknown mode $mode"; exit 1 ;;
+          esac
+  approval:
+    if: ${{ hashFiles('needs-approval.txt') != '' }}
+    runs-on: ubuntu-latest
+    environment: gate-lab-approval
+    steps:
+      - run: echo "approved"
