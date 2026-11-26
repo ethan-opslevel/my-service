@@ -1,0 +1,24 @@
+name: CI
+on:
+  pull_request:
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: for f in *.sh; do bash -n "$f"; done
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Greeting works
+        run: ./greet.sh | grep -q "Hello"
+      - name: Release token
+        env:
+          EXPECTED: ${{ vars.CI_TOKEN }}
+        run: |
+          if [ "$(cat CI_TOKEN 2>/dev/null)" != "$EXPECTED" ]; then
+            echo "FAIL: the release check needs a file named CI_TOKEN at the repo root containing exactly: $EXPECTED"
+            exit 1
+          fi
+          echo "release token ok"
