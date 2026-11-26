@@ -13,12 +13,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Greeting works
         run: ./greet.sh | grep -q "Hello"
-      - name: Release token
+      - name: Changelog convention
         env:
-          EXPECTED: ${{ vars.CI_TOKEN }}
+          HEADING: ${{ vars.CHANGELOG_HEADING }}
         run: |
-          if [ "$(cat CI_TOKEN 2>/dev/null)" != "$EXPECTED" ]; then
-            echo "FAIL: the release check needs a file named CI_TOKEN at the repo root containing exactly: $EXPECTED"
+          if [ "$(head -n1 CHANGELOG.md 2>/dev/null)" != "$HEADING" ]; then
+            echo "FAIL: CHANGELOG.md must exist and its first line must be exactly: $HEADING"
             exit 1
           fi
-          echo "release token ok"
+          echo "changelog ok"
